@@ -1,0 +1,115 @@
+def js(j1,j2,l):
+    l1=robot_drv.get_light_signal(35)
+    l2=robot_drv.get_light_signal(36)
+    if(l1<l and l2<l):
+        robot_drv.set_joints(91,0)
+    else:
+        if(l1>l):
+            robot_drv.set_joints(91,j1)
+        if(l2>l):
+            robot_drv.set_joints(91,-j2)
+
+def r(dst1,dst2,v,d,j1,j2):
+    global t0,t2,a,v0,vt
+    v1=(dst1-dst2+d)/7
+    if(v>400):
+        if(robot_drv.get_light_signal(35)>10 and robot_drv.get_light_signal(36)>10):
+            t2=robot_drv.get_time()+800
+        if(robot_drv.get_dist(38)*500/2.25<v*v-160000 and robot_drv.get_dist(32)-robot_drv.get_dist(38)>100):
+            v=400
+        elif(robot_drv.get_time()<t2 and v>500):
+            v=500
+            
+    if(a==0):
+        if(v-v0>50):
+            t0=robot_drv.get_time()
+            vt=v0
+            a=0.5
+        elif(v-v0<-50):
+            t0=robot_drv.get_time()
+            vt=v0
+            a=-0.5
+    elif(a==0.5):
+        if(v0>v):
+            a=0
+        else:
+            v=vt+a*(robot_drv.get_time()-t0)
+    elif(a==-0.5):
+        if(v0<v):
+            a=0
+        else:
+            v=vt+a*(robot_drv.get_time()-t0)
+    if(v*v1>14600 and v>450):
+        v1=14600/v
+    elif(v*v1<-14600 and v>450):
+        v1=-14600/v
+    elif(v*v1>25000):
+        v1=25000/v
+    elif(v*v1<-25000):
+        v1=-25000/v
+    robot_drv.set_motors(1,int(v-v1),2,int(v+v1))
+    v0=v
+    if(robot_drv.get_dist(32)-robot_drv.get_dist(38)>1800):
+        js(j1,j2,20)
+    else:
+        js(j1,j2,150)
+    while(robot_drv.get_height(40)>90):
+        robot_drv.set_motors(1,350,2,350)
+        js(j1,j2,20)
+        t2=robot_drv.get_time()+800
+        v0=350
+
+def rt(t,v,d,j1,j2):
+    global t0,t2,a
+    t0,t2,a=0,0,0
+    robot_drv.start_time()
+    while(robot_drv.get_time()<t):
+        dst1=robot_drv.get_dist(31)
+        dst2=robot_drv.get_dist(33)
+        r(dst1,dst2,v,d,j1,j2)
+
+def rr(t,v,d,j1,j2):
+    global t0,t2,a
+    t0,t2,a=0,0,0
+    robot_drv.start_time()
+    while(robot_drv.get_time()<t):
+        dst1=d
+        dst2=robot_drv.get_dist(33)
+        r(dst1,dst2,v,0,j1,j2)
+
+def rl(t,v,d,j1,j2):
+    global t0,t2,a
+    t0,t2,a=0,0,0
+    robot_drv.start_time()
+    while(robot_drv.get_time()<t):
+        dst1=robot_drv.get_dist(31)
+        dst2=d
+        r(dst1,dst2,v,0,j1,j2)
+
+def rg(v,d,j1,j2):
+    global t0,t2,a
+    t0,t2,a=0,0,0
+    robot_drv.start_time()
+    while(robot_drv.get_gray(34)<200):
+        dst1=robot_drv.get_dist(31)
+        dst2=robot_drv.get_dist(33)
+        r(dst1,dst2,v,d,j1,j2)
+
+def cps(c):
+    c0=robot_drv.get_compass(37)
+    while(c-c0>2 or c-c0<-2):
+        c0=robot_drv.get_compass(37)
+        if(c-c0>180):
+            dc=c-c0-360
+        elif(c-c0<-180):
+            dc=c-c0+360
+        else:
+            dc=c-c0
+        robot_drv.set_motors(1,-int(dc*3),2,int(dc*3))
+
+def main():
+    print("233")
+    robot_drv.set_joints(94,0)
+    robot_drv.set_joints(92,30,93,30)
+    global v0,a
+    v0,a=0,0
